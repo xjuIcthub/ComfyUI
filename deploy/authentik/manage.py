@@ -137,7 +137,8 @@ def http_request(url, method="GET", token=None, payload=None, host=None, follow_
     try:
         with opener.open(request, timeout=timeout) as response:
             body = response.read()
-            return response.status, response.headers, json.loads(body) if body else None
+            payload = json.loads(body) if body and response.headers.get_content_type() == "application/json" else body or None
+            return response.status, response.headers, payload
     except urllib.error.HTTPError as error:
         body = error.read()
         detail = body.decode("utf-8", "replace")[:500]
@@ -295,7 +296,7 @@ def local_health(args):
                 if status in {200, 204, 302}:
                     print(f"{name}: HTTP {status}")
                     break
-            except ConfigError:
+            except (ConfigError, OSError):
                 status = None
             if time.monotonic() >= deadline:
                 raise ConfigError(f"{name} did not become healthy; last status: {status}")

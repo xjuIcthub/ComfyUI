@@ -45,6 +45,9 @@ class LoginPageTests(unittest.TestCase):
         spec = importlib.util.spec_from_file_location("icthub_login_server", LOGIN / "server.py")
         cls.module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(cls.module)
+        manage_spec = importlib.util.spec_from_file_location("icthub_manage", AUTHENTIK / "manage.py")
+        cls.manage = importlib.util.module_from_spec(manage_spec)
+        manage_spec.loader.exec_module(cls.manage)
         cls.log = io.StringIO()
         cls.module.sys.stderr = cls.log
         handler = partial(cls.module.LoginPageHandler, directory=str(LOGIN))
@@ -84,6 +87,12 @@ class LoginPageTests(unittest.TestCase):
         status, _, _ = self.request(f"/?itoken={token}", "register.icthub.top")
         self.assertEqual(status, 200)
         self.assertNotIn(token, self.log.getvalue())
+
+    def test_health_helper_accepts_html_pages(self):
+        url = f"http://127.0.0.1:{self.server.server_address[1]}/"
+        status, _, body = self.manage.http_request(url, host="login.icthub.top", follow_redirects=False)
+        self.assertEqual(status, 200)
+        self.assertIsInstance(body, bytes)
 
     def test_registration_is_disabled_by_default(self):
         runtime_config = (LOGIN / "runtime-config.js").read_text(encoding="utf-8")
