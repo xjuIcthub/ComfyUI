@@ -1,0 +1,327 @@
+# yaml-language-server: $schema=https://version-2026-5.goauthentik.io/blueprints/schema.json
+version: 1
+metadata:
+  name: ICThub invitation enrollment and Cloudflare Access
+  labels:
+    blueprints.goauthentik.io/description: ICThub invitation-only enrollment, branding, groups, and OIDC provider
+entries:
+  - model: authentik_core.group
+    id: comfy-users
+    identifiers:
+      name: comfy-users
+    attrs:
+      is_superuser: false
+
+  - model: authentik_policies_password.passwordpolicy
+    id: password-policy
+    identifiers:
+      name: ICThub password policy
+    attrs:
+      password_field: password
+      length_min: 12
+      amount_uppercase: 1
+      amount_lowercase: 1
+      amount_digits: 1
+      amount_symbols: 1
+      check_static_rules: true
+      check_have_i_been_pwned: false
+      check_zxcvbn: true
+      zxcvbn_score_threshold: 3
+
+  - model: authentik_policies_expression.expressionpolicy
+    id: enrollment-validation-policy
+    identifiers:
+      name: ICThub invitation and account validation
+    attrs:
+      expression: |
+        data = request.context.get("prompt_data", {})
+        invitation = request.context.get("invitation")
+        fixed_data = invitation.get("fixed_data", {}) if isinstance(invitation, dict) else getattr(invitation, "fixed_data", {})
+        expected_email = str(fixed_data.get("email", "")).strip().casefold()
+        submitted_email = str(data.get("email", "")).strip().casefold()
+        if not request.context.get("invitation_in_effect", False) or not expected_email or submitted_email != expected_email:
+            ak_message("邀请码无效、已失效或与绑定邮箱不匹配。")
+            return False
+        username = str(data.get("username", ""))
+        if not 3 <= len(username) <= 32 or not username[0].isalnum() or not all(character.isalnum() or character in "._-" for character in username):
+            ak_message("用户名需为 3–32 个字母、数字、点、下划线或连字符，并以字母或数字开头。")
+            return False
+        return True
+
+  - model: authentik_policies_expression.expressionpolicy
+    id: verified-user-group-policy
+    identifiers:
+      name: ICThub add verified user to comfy-users
+    attrs:
+      expression: |
+        from authentik.core.models import Group
+        user = request.context.get("pending_user")
+        if user is None or not user.is_active or not user.email:
+            ak_message("请先完成邮箱验证。")
+            return False
+        user.ak_groups.add(Group.objects.get(name="comfy-users"))
+        return True
+
+  - model: authentik_flows.flow
+    id: enrollment-flow
+    identifiers:
+      slug: icthub-invitation-enrollment
+    attrs:
+      name: ICThub invitation enrollment
+      title: 使用邀请码注册 ICThub
+      designation: enrollment
+      authentication: none
+      denied_action: message_continue
+      policy_engine_mode: all
+      layout: stacked
+
+  - model: authentik_stages_invitation.invitationstage
+    id: invitation-stage
+    identifiers:
+      name: ICThub invitation gate
+    attrs:
+      continue_flow_without_invitation: false
+
+  - model: authentik_stages_prompt.prompt
+    id: username-prompt
+    identifiers:
+      pk: 1f9855eb-570f-467d-a9bc-2e5cf9bbed62
+    attrs:
+      field_key: username
+      label: 用户名
+      type: username
+      required: true
+      order: 10
+      placeholder: 3–32 个字符
+
+  - model: authentik_stages_prompt.prompt
+    id: email-prompt
+    identifiers:
+      pk: 9c5c6042-e58c-4e8c-9663-466881db4a20
+    attrs:
+      field_key: email
+      label: 已绑定邮箱
+      type: hidden
+      required: true
+      order: 20
+
+  - model: authentik_stages_prompt.prompt
+    id: password-prompt
+    identifiers:
+      pk: 0ed91ce7-d14e-414a-bd4a-f33fa8fb572b
+    attrs:
+      field_key: password
+      label: 密码
+      type: password
+      required: true
+      order: 30
+      placeholder: 至少 12 个字符
+
+  - model: authentik_stages_prompt.prompt
+    id: password-repeat-prompt
+    identifiers:
+      pk: 0feb67df-7920-41ec-b6b4-779c68248dc8
+    attrs:
+      field_key: password_repeat
+      label: 确认密码
+      type: password
+      required: true
+      order: 40
+
+  - model: authentik_stages_prompt.promptstage
+    id: account-prompt-stage
+    identifiers:
+      name: ICThub account details
+    attrs:
+      fields:
+        - !KeyOf username-prompt
+        - !KeyOf email-prompt
+        - !KeyOf password-prompt
+        - !KeyOf password-repeat-prompt
+      validation_policies:
+        - !KeyOf enrollment-validation-policy
+        - !KeyOf password-policy
+
+  - model: authentik_stages_user_write.userwritestage
+    id: user-write-stage
+    identifiers:
+      name: ICThub create inactive user
+    attrs:
+      user_creation_mode: always_create
+      create_users_as_inactive: true
+
+  - model: authentik_stages_email.emailstage
+    id: verification-email-stage
+    identifiers:
+      name: ICThub verify enrollment email
+    attrs:
+      use_global_settings: true
+      activate_user_on_success: true
+      token_expiry: minutes=30
+      subject: 验证你的 ICThub 邮箱
+      template: email/icthub-verification.html
+
+  - model: authentik_stages_user_login.userloginstage
+    id: enrollment-login-stage
+    identifiers:
+      name: ICThub enrollment login
+    attrs:
+      session_duration: days=30
+
+  - model: authentik_flows.flowstagebinding
+    identifiers:
+      target: !KeyOf enrollment-flow
+      order: 10
+    attrs:
+      stage: !KeyOf invitation-stage
+      evaluate_on_plan: false
+      re_evaluate_policies: true
+      policy_engine_mode: all
+      invalid_response_action: retry
+
+  - model: authentik_flows.flowstagebinding
+    identifiers:
+      target: !KeyOf enrollment-flow
+      order: 20
+    attrs:
+      stage: !KeyOf account-prompt-stage
+      evaluate_on_plan: false
+      re_evaluate_policies: true
+      policy_engine_mode: all
+      invalid_response_action: retry
+
+  - model: authentik_flows.flowstagebinding
+    identifiers:
+      target: !KeyOf enrollment-flow
+      order: 30
+    attrs:
+      stage: !KeyOf user-write-stage
+      evaluate_on_plan: false
+      re_evaluate_policies: true
+      policy_engine_mode: all
+      invalid_response_action: retry
+
+  - model: authentik_flows.flowstagebinding
+    identifiers:
+      target: !KeyOf enrollment-flow
+      order: 40
+    attrs:
+      stage: !KeyOf verification-email-stage
+      evaluate_on_plan: false
+      re_evaluate_policies: true
+      policy_engine_mode: all
+      invalid_response_action: retry
+
+  - model: authentik_flows.flowstagebinding
+    id: enrollment-login-binding
+    identifiers:
+      target: !KeyOf enrollment-flow
+      order: 50
+    attrs:
+      stage: !KeyOf enrollment-login-stage
+      evaluate_on_plan: false
+      re_evaluate_policies: true
+      policy_engine_mode: all
+      invalid_response_action: retry
+
+  - model: authentik_policies.policybinding
+    identifiers:
+      target: !KeyOf enrollment-login-binding
+      order: 0
+    attrs:
+      policy: !KeyOf verified-user-group-policy
+      enabled: true
+      negate: false
+      timeout: 30
+
+  - model: authentik_providers_oauth2.scopemapping
+    id: groups-scope
+    identifiers:
+      name: ICThub Cloudflare groups scope
+    attrs:
+      scope_name: groups
+      description: Group names used by Cloudflare Access policy
+      expression: |
+        return {"groups": [group.name for group in request.user.ak_groups.all()]}
+
+  - model: authentik_providers_oauth2.oauth2provider
+    id: cloudflare-provider
+    identifiers:
+      name: ICThub Cloudflare Access
+    attrs:
+      client_type: confidential
+      client_id: !Env [ICTHUB_OIDC_CLIENT_ID, ""]
+      client_secret: !Env [ICTHUB_OIDC_CLIENT_SECRET, ""]
+      authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+      invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+      redirect_uris:
+        - matching_mode: strict
+          url: !Env [ICTHUB_CLOUDFLARE_REDIRECT_URI, ""]
+      property_mappings:
+        - !Find [authentik_providers_oauth2.scopemapping, [scope_name, openid]]
+        - !Find [authentik_providers_oauth2.scopemapping, [scope_name, profile]]
+        - !Find [authentik_providers_oauth2.scopemapping, [scope_name, email]]
+        - !KeyOf groups-scope
+      signing_key: !Find [authentik_crypto.certificatekeypair, [name, authentik Self-signed Certificate]]
+      sub_mode: hashed_user_id
+      issuer_mode: per_provider
+      include_claims_in_id_token: true
+      access_code_validity: minutes=1
+      access_token_validity: minutes=5
+      refresh_token_validity: days=30
+
+  - model: authentik_core.application
+    id: cloudflare-application
+    identifiers:
+      slug: icthub-cloudflare-access
+    attrs:
+      name: ICThub Cloudflare Access
+      provider: !KeyOf cloudflare-provider
+      policy_engine_mode: all
+      meta_launch_url: https://comfy.icthub.top
+
+  - model: authentik_policies_expression.expressionpolicy
+    id: cloudflare-group-policy
+    identifiers:
+      name: ICThub require comfy-users for Cloudflare OIDC
+    attrs:
+      expression: |
+        return request.user.is_authenticated and request.user.is_active and request.user.ak_groups.filter(name="comfy-users").exists()
+
+  - model: authentik_policies.policybinding
+    identifiers:
+      target: !KeyOf cloudflare-application
+      order: 0
+    attrs:
+      policy: !KeyOf cloudflare-group-policy
+      enabled: true
+      negate: false
+      timeout: 30
+
+  - model: authentik_brands.brand
+    identifiers:
+      domain: auth.icthub.top
+    attrs:
+      default: true
+      branding_title: ICThub Identity
+      branding_logo: /media/public/icthub/logo.svg
+      branding_favicon: /media/public/icthub/favicon.svg
+      branding_custom_css: /media/public/icthub/brand.css
+      flow_authentication: !Find [authentik_flows.flow, [slug, default-authentication-flow]]
+      flow_invalidation: !Find [authentik_flows.flow, [slug, default-invalidation-flow]]
+      flow_recovery: !Find [authentik_flows.flow, [slug, default-recovery-flow]]
+      flow_unenrollment: !Find [authentik_flows.flow, [slug, default-unenrollment-flow]]
+
+  - model: authentik_brands.brand
+    identifiers:
+      domain: auth-admin.icthub.top
+    attrs:
+      default: false
+      branding_title: ICThub Identity Admin
+      branding_logo: /media/public/icthub/logo.svg
+      branding_favicon: /media/public/icthub/favicon.svg
+      branding_custom_css: /media/public/icthub/brand.css
+      flow_authentication: !Find [authentik_flows.flow, [slug, default-authentication-flow]]
+      flow_invalidation: !Find [authentik_flows.flow, [slug, default-invalidation-flow]]
+      flow_recovery: !Find [authentik_flows.flow, [slug, default-recovery-flow]]
+      flow_unenrollment: !Find [authentik_flows.flow, [slug, default-unenrollment-flow]]

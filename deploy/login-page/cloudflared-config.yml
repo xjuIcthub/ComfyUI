@@ -7,6 +7,22 @@ ingress:
     service: http://127.0.0.1:8190
     originRequest:
       connectTimeout: 10s
+      httpHostHeader: login.icthub.top
+  - hostname: register.icthub.top
+    service: http://127.0.0.1:8190
+    originRequest:
+      connectTimeout: 10s
+      httpHostHeader: register.icthub.top
+  - hostname: auth.icthub.top
+    service: http://127.0.0.1:9000
+    originRequest:
+      connectTimeout: 10s
+      httpHostHeader: auth.icthub.top
+  - hostname: auth-admin.icthub.top
+    service: http://127.0.0.1:9000
+    originRequest:
+      connectTimeout: 10s
+      httpHostHeader: auth-admin.icthub.top
   - hostname: comfy.icthub.top
     service: http://127.0.0.1:8188
     originRequest:

@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily encrypted backup of ICThub Authentik
+
+[Timer]
+OnCalendar=*-*-* 03:30:00 UTC
+RandomizedDelaySec=30m
+Persistent=true
+Unit=icthub-authentik-backup.service
+
+[Install]
+WantedBy=timers.target

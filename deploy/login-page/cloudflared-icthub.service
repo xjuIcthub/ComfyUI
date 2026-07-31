@@ -1,7 +1,7 @@
 [Unit]
 Description=Cloudflare Tunnel for ICThub services
-Wants=network-online.target comfyui.service icthub-login.service
-After=network-online.target comfyui.service icthub-login.service
+Wants=network-online.target comfyui.service icthub-login.service icthub-authentik.service
+After=network-online.target comfyui.service icthub-login.service icthub-authentik.service
 
 [Service]
 Type=simple

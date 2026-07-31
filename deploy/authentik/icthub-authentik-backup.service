@@ -1,0 +1,14 @@
+[Unit]
+Description=Encrypted backup of ICThub Authentik
+Requires=docker.service
+After=docker.service icthub-authentik.service
+ConditionPathExists=/etc/icthub-auth/backup.env
+
+[Service]
+Type=oneshot
+UMask=0077
+WorkingDirectory=/home/winbeau/services/authentik-deploy
+ExecStart=/home/winbeau/services/authentik-deploy/backup.sh
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7

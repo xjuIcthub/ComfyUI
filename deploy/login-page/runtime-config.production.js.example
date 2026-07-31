@@ -1,0 +1,3 @@
+window.ICTHUB_AUTH_CONFIG = Object.freeze({
+  registrationEnabled: true,
+});

@@ -1,0 +1,21 @@
+[Unit]
+Description=ICThub Authentik identity service
+Requires=docker.service
+Wants=network-online.target icthub-login.service
+After=docker.service network-online.target icthub-login.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/home/winbeau/services/authentik-deploy
+UMask=0027
+ExecStartPre=/usr/bin/python3 /home/winbeau/services/authentik-deploy/manage.py validate
+ExecStart=/usr/bin/docker compose up -d --remove-orphans
+ExecStartPost=/usr/bin/python3 /home/winbeau/services/authentik-deploy/manage.py health --wait 180
+ExecReload=/usr/bin/docker compose up -d --remove-orphans
+ExecStop=/usr/bin/docker compose stop
+TimeoutStartSec=600
+TimeoutStopSec=180
+
+[Install]
+WantedBy=multi-user.target

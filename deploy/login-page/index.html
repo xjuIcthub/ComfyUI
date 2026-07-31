@@ -5,9 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#080b14">
-  <meta name="description" content="ICThub AI Studio 安全登录入口">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; form-action https://auth.icthub.top; frame-ancestors 'none'; object-src 'none'">
+  <meta name="description" content="ICThub AI Studio 安全登录与邀请码注册入口">
   <title>ICThub AI Studio · 登录</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="runtime-config.js"></script>
   <script src="app.js" defer></script>
 </head>
 <body>
@@ -94,21 +97,27 @@
         </div>
 
         <header>
-          <p class="welcome">WELCOME BACK</p>
+          <p class="welcome">SECURE ACCESS</p>
           <h2 id="login-title">进入 AI 工作台</h2>
-          <p>使用已授权邮箱或企业身份账号完成验证。</p>
+          <p>已有账号直接登录；新用户需使用管理员签发并绑定邮箱的邀请码注册。</p>
         </header>
 
-        <a class="login-button" id="workspace-link" href="https://comfy.icthub.top">
-          <span>继续登录</span>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M14 7l5 5-5 5"/></svg>
-        </a>
+        <div class="action-list">
+          <a class="login-button" id="workspace-link" href="https://comfy.icthub.top">
+            <span>登录工作台</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M14 7l5 5-5 5"/></svg>
+          </a>
+          <a class="login-button secondary" id="registration-link" href="https://register.icthub.top" aria-disabled="true">
+            <span>邀请码注册暂未开放</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M14 7l5 5-5 5"/></svg>
+          </a>
+        </div>
 
         <p class="access-note">
           <span aria-hidden="true">
             <svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
           </span>
-          登录由 Cloudflare Access 安全托管，本站不会收集或保存你的密码。
+          登录由 Cloudflare Access 与 Authentik 安全托管，本站不会收集或保存密码、邀请码或身份 Token。
         </p>
 
         <div class="divider"><span>访问状态</span></div>
@@ -129,8 +138,8 @@
         </dl>
 
         <details class="help">
-          <summary>无法登录？</summary>
-          <p>请确认使用管理员授权的邮箱。如果没有访问权限，请联系 ICThub 工作台管理员。</p>
+          <summary>无法登录或注册？</summary>
+          <p>请确认账号已完成邮箱验证，或邀请码仍在 24 小时有效期内且由管理员绑定到你的邮箱。需要帮助时请联系 ICThub 工作台管理员。</p>
         </details>
       </div>
 

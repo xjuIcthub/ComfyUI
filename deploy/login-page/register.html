@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#080b14">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; form-action https://auth.icthub.top; frame-ancestors 'none'; object-src 'none'">
+  <meta name="description" content="ICThub AI Studio 邀请码注册入口">
+  <title>ICThub AI Studio · 邀请码注册</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="runtime-config.js"></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="ambient" aria-hidden="true">
+    <div class="aurora aurora-violet"></div>
+    <div class="aurora aurora-cyan"></div>
+    <div class="grid"></div>
+    <div class="orb orb-one"></div>
+    <div class="orb orb-two"></div>
+  </div>
+
+  <main class="registration-shell">
+    <section class="login-column registration-column" aria-labelledby="registration-title">
+      <a class="brand registration-brand" href="https://login.icthub.top" aria-label="返回 ICThub 登录入口">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 42 42" role="img">
+            <path d="M11 8.5h20a3 3 0 0 1 3 3v19a3 3 0 0 1-3 3H11a3 3 0 0 1-3-3v-19a3 3 0 0 1 3-3Z"/>
+            <path class="mark-line" d="M16 15.5h10M16 21h7M16 26.5h10"/>
+            <circle class="mark-node" cx="29.5" cy="21" r="2.5"/>
+          </svg>
+        </span>
+        <span class="brand-copy">
+          <strong>ICThub</strong>
+          <small>AI Studio</small>
+        </span>
+      </a>
+
+      <div class="login-card registration-card">
+        <div class="card-glow" aria-hidden="true"></div>
+        <div class="security-label">
+          <span class="shield" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 3.5 19 6v5.8c0 4.2-2.7 7.6-7 8.7-4.3-1.1-7-4.5-7-8.7V6l7-2.5Z"/><path d="m9 12 2 2 4-4"/></svg>
+          </span>
+          一次性邀请
+        </div>
+
+        <header>
+          <p class="welcome">INVITATION ONLY</p>
+          <h1 id="registration-title">使用邀请码注册</h1>
+          <p>邀请码默认 24 小时内有效、仅可使用一次，并已由管理员绑定到指定邮箱。</p>
+        </header>
+
+        <form class="registration-form" id="registration-form" action="https://auth.icthub.top/if/flow/icthub-invitation-enrollment/" method="get">
+          <label for="invitation-token">邀请码</label>
+          <input id="invitation-token" name="itoken" type="text" minlength="16" maxlength="128" pattern="[A-Za-z0-9_-]{16,128}" autocomplete="off" autocapitalize="none" spellcheck="false" required disabled aria-describedby="invitation-help">
+          <p id="invitation-help">只会将邀请码直接提交给 Authentik 验证；本页不会保存或查询邀请码。</p>
+          <button class="login-button" id="registration-submit" type="submit" disabled>
+            <span>注册暂未开放</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M14 7l5 5-5 5"/></svg>
+          </button>
+        </form>
+
+        <p class="access-note">
+          <span aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          </span>
+          注册、邮箱验证和密码设置均在 ICThub 品牌 Authentik 页面完成。
+        </p>
+
+        <a class="back-link" href="https://login.icthub.top">已有账号？返回登录</a>
+      </div>
+
+      <footer class="page-footer">
+        <span>© <span id="current-year">2026</span> ICThub</span>
+        <a href="https://icthub.top" rel="noreferrer">官方网站</a>
+        <span aria-hidden="true">·</span>
+        <a href="mailto:admin@icthub.top">联系管理员</a>
+      </footer>
+    </section>
+  </main>
+</body>
+</html>

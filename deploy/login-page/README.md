@@ -1,31 +1,42 @@
-# ICThub login page
+# ICThub authentication entry pages
 
-Static branded entry page for `login.icthub.top`. It does not authenticate users or collect credentials. The primary action redirects to the Cloudflare Access protected ComfyUI application at `https://comfy.icthub.top`.
+Static branded navigation for `login.icthub.top` and `register.icthub.top`. It never authenticates users, checks invitation validity, or stores passwords, invitations, API keys, OIDC secrets, or identity tokens.
+
+- `login.icthub.top`: sends existing users to the Cloudflare Access-protected ComfyUI application.
+- `register.icthub.top`: collects an invitation token and submits it directly to the Authentik invitation Enrollment Flow.
+- Registration is disabled by default and is enabled only through `/etc/icthub-auth/login-config.js` after SMTP acceptance.
 
 ## Preview
 
 ```bash
-python3 -m http.server 8080 --bind 127.0.0.1 --directory deploy/login-page
+python3 deploy/login-page/server.py --bind 127.0.0.1 --port 8080
 ```
 
-Open `http://127.0.0.1:8080`.
+Use Host headers to preview both roots:
 
-An optional safe relative return path is supported:
+```bash
+curl -H 'Host: login.icthub.top' http://127.0.0.1:8080/
+curl -H 'Host: register.icthub.top' http://127.0.0.1:8080/
+```
+
+The server exposes only the public HTML/CSS/JavaScript allowlist, adds browser security headers, rejects unknown hosts, and removes query strings from access logs. An optional ComfyUI-relative return path is accepted only when the parsed destination remains on `https://comfy.icthub.top`:
 
 ```text
-http://127.0.0.1:8080/?returnTo=/workflows
+https://login.icthub.top/?returnTo=/workflows
 ```
 
 ## Deployment boundary
 
-- `login.icthub.top` serves this public static page on `127.0.0.1:8190`.
-- `comfy.icthub.top` remains protected by Cloudflare Access.
-- The page never handles passwords, one-time codes, API keys, or Access tokens.
-- Do not add a Cloudflare Access bypass rule to the ComfyUI application.
+- both public pages listen locally on `127.0.0.1:8190`;
+- Authentik listens locally on `127.0.0.1:9000`;
+- ComfyUI remains protected by Cloudflare Access on `127.0.0.1:8188`;
+- `auth.icthub.top` is public through Tunnel but must not use an Access policy that depends on Authentik;
+- `auth-admin.icthub.top` uses the existing GitHub administrator IdP and Authentik MFA;
+- no Cloudflare Access Bypass rule is permitted.
 
 ## Pi 5 system services
 
-After the Pi pulls this commit, install the root-owned units and local Tunnel configuration:
+After the Pi pulls the deployment changes, install the root-owned units and Tunnel configuration:
 
 ```bash
 sudo install -o root -g root -m 0644 \
@@ -42,20 +53,26 @@ sudo install -o root -g winbeau -m 0640 \
 
 sudo systemctl daemon-reload
 sudo systemctl disable --now cloudflared.service cloudflared-comfyui.service 2>/dev/null || true
-sudo systemctl enable --now icthub-login.service cloudflared-icthub.service
+sudo systemctl enable --now icthub-login.service icthub-authentik.service cloudflared-icthub.service
 ```
 
-Route the public login hostname to the existing Tunnel before switching services:
+Route the additional hostnames to the existing named Tunnel before switching services:
 
 ```bash
-export HTTP_PROXY=http://127.0.0.1:10808
-export HTTPS_PROXY=http://127.0.0.1:10808
 cloudflared tunnel route dns -f comfyui-pi5 login.icthub.top
+cloudflared tunnel route dns -f comfyui-pi5 register.icthub.top
+cloudflared tunnel route dns -f comfyui-pi5 auth.icthub.top
+cloudflared tunnel route dns -f comfyui-pi5 auth-admin.icthub.top
 ```
+
+Do not put invitations into a route command, URL sent to the static server, shell log, or analytics system.
 
 Expected local listeners:
 
 ```text
 127.0.0.1:8188  ComfyUI
-127.0.0.1:8190  branded login page
+127.0.0.1:8190  branded login and registration pages
+127.0.0.1:9000  Authentik
 ```
+
+See `deploy/authentik/README.md` for SMTP activation, invitation operations, Cloudflare OIDC configuration, backup/restore, acceptance, and rollback.

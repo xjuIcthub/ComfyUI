@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="84" viewBox="0 0 320 84" role="img" aria-labelledby="title">
+  <title id="title">ICThub Identity</title>
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8b6cff"/>
+      <stop offset="1" stop-color="#4ee1ff"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="80" height="80" rx="24" fill="#11162a" stroke="url(#g)" stroke-width="3"/>
+  <path d="M23 21h38a4 4 0 0 1 4 4v34a4 4 0 0 1-4 4H23a4 4 0 0 1-4-4V25a4 4 0 0 1 4-4Z" fill="#8b6cff" fill-opacity=".12" stroke="#9c86ff" stroke-width="2"/>
+  <path d="M31 33h22M31 42h14M31 51h22" fill="none" stroke="#f6f7fb" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="58" cy="42" r="5" fill="#4ee1ff"/>
+  <text x="102" y="45" fill="#f6f7fb" font-family="Inter,system-ui,sans-serif" font-size="30" font-weight="700">ICThub</text>
+  <text x="103" y="66" fill="#8d96b4" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="700" letter-spacing="4">IDENTITY</text>
+</svg>

@@ -24,3 +24,10 @@ web_custom_versions/
 filtered-openapi.yaml
 uv.lock
 .comfy_environment
+
+# ICThub identity deployment secrets and runtime state
+/deploy/authentik/*.env
+/deploy/authentik/*.age
+/deploy/authentik/data/
+/deploy/authentik/postgresql/
+/deploy/login-page/runtime-config.production.js
