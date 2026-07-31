@@ -1,0 +1,23 @@
+[Unit]
+Description=Cloudflare Tunnel for ICThub services
+Wants=network-online.target comfyui.service icthub-login.service
+After=network-online.target comfyui.service icthub-login.service
+
+[Service]
+Type=simple
+User=winbeau
+Group=winbeau
+Environment=HOME=/home/winbeau
+Environment=HTTP_PROXY=http://127.0.0.1:10808
+Environment=HTTPS_PROXY=http://127.0.0.1:10808
+ExecStart=/usr/local/bin/cloudflared tunnel --config /etc/cloudflared/config.yml run
+Restart=always
+RestartSec=10
+TimeoutStopSec=20
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+
+[Install]
+WantedBy=multi-user.target

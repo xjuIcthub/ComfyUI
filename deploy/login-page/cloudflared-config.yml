@@ -1,0 +1,14 @@
+tunnel: bb066db8-1d45-4a42-a719-4b3e24ddf47b
+credentials-file: /etc/cloudflared/bb066db8-1d45-4a42-a719-4b3e24ddf47b.json
+protocol: http2
+
+ingress:
+  - hostname: login.icthub.top
+    service: http://127.0.0.1:8190
+    originRequest:
+      connectTimeout: 10s
+  - hostname: comfy.icthub.top
+    service: http://127.0.0.1:8188
+    originRequest:
+      connectTimeout: 10s
+  - service: http_status:404
