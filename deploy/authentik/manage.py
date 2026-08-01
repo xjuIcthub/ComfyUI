@@ -123,9 +123,11 @@ def validate_env(path, require_smtp=False):
     return env
 
 
-def http_request(url, method="GET", token=None, payload=None, host=None, follow_redirects=True, timeout=15):
+def http_request(url, method="GET", token=None, payload=None, host=None, follow_redirects=True, timeout=15, extra_headers=None):
     data = None if payload is None else json.dumps(payload).encode("utf-8")
     headers = {"Accept": "application/json"}
+    if extra_headers:
+        headers.update(extra_headers)
     if data is not None:
         headers["Content-Type"] = "application/json"
     if token:
@@ -311,8 +313,12 @@ def public_acceptance(args):
         ("auth-admin", "https://auth-admin.icthub.top", {302, 403}, "access"),
         ("comfy", "https://comfy.icthub.top", {302, 403}, "access"),
     ]
+    browser_headers = {
+        "Accept": "text/html",
+        "User-Agent": "Mozilla/5.0 (X11; Linux aarch64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+    }
     for name, url, expected, boundary in checks:
-        status, headers, _ = http_request(url, follow_redirects=False)
+        status, headers, _ = http_request(url, follow_redirects=False, extra_headers=browser_headers)
         location = headers.get("Location", "")
         is_access = "cloudflareaccess.com" in location or "/cdn-cgi/access/" in location
         if status not in expected:

@@ -90,7 +90,12 @@ class LoginPageTests(unittest.TestCase):
 
     def test_health_helper_accepts_html_pages(self):
         url = f"http://127.0.0.1:{self.server.server_address[1]}/"
-        status, _, body = self.manage.http_request(url, host="login.icthub.top", follow_redirects=False)
+        status, _, body = self.manage.http_request(
+            url,
+            host="login.icthub.top",
+            follow_redirects=False,
+            extra_headers={"Accept": "text/html", "User-Agent": "Mozilla/5.0"},
+        )
         self.assertEqual(status, 200)
         self.assertIsInstance(body, bytes)
 
