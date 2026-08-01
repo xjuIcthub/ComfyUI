@@ -245,9 +245,11 @@ def create_invitation(args):
     if len(flows) != 1:
         raise ConfigError(f"expected one enrollment flow, found {len(flows)}")
     flow_id = flows[0].get("pk")
-    expires = datetime.now(timezone.utc) + timedelta(hours=24)
+    issued_at = datetime.now(timezone.utc)
+    expires = issued_at + timedelta(hours=24)
+    email_hash = hashlib.sha256(email.encode("utf-8")).hexdigest()[:8]
     payload = {
-        "name": "ICThub invitation " + datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "name": f"icthub-invitation-{issued_at:%Y%m%d-%H%M%S}-{email_hash}",
         "expires": expires.isoformat(),
         "single_use": True,
         "flow": flow_id,

@@ -1,8 +1,12 @@
+import argparse
+import contextlib
 import http.client
 import importlib.util
 import io
+import re
 import threading
 import unittest
+from unittest import mock
 from functools import partial
 from http.server import ThreadingHTTPServer
 from pathlib import Path
@@ -98,6 +102,33 @@ class LoginPageTests(unittest.TestCase):
         )
         self.assertEqual(status, 200)
         self.assertIsInstance(body, bytes)
+
+    def test_invitation_name_is_slug_safe(self):
+        captured = {}
+
+        def request(*args, **kwargs):
+            captured.update(kwargs["payload"])
+            return 201, {}, {"pk": "invitation-token"}
+
+        args = argparse.Namespace(
+            env=Path("/unused/env"),
+            marker=Path("/unused/marker"),
+            email="Test+Invite@Example.com",
+            base_url="http://127.0.0.1:9000",
+        )
+        with (
+            mock.patch.object(self.manage, "validate_env"),
+            mock.patch.object(self.manage, "require_smtp_marker"),
+            mock.patch.object(self.manage, "api_token", return_value="api-token"),
+            mock.patch.object(self.manage, "api_results", return_value=[{"pk": "flow-id"}]),
+            mock.patch.object(self.manage, "http_request", side_effect=request),
+            contextlib.redirect_stdout(io.StringIO()),
+        ):
+            self.manage.create_invitation(args)
+
+        self.assertRegex(captured["name"], re.compile(r"^[a-z0-9-]+$"))
+        self.assertTrue(captured["single_use"])
+        self.assertEqual(captured["fixed_data"], {"email": "test+invite@example.com"})
 
     def test_registration_is_disabled_by_default(self):
         runtime_config = (LOGIN / "runtime-config.js").read_text(encoding="utf-8")
