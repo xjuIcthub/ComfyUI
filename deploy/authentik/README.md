@@ -162,7 +162,7 @@ JWKS URL:          https://login.icthub.top/application/o/icthub-cloudflare-acce
 Scopes:            openid profile email groups
 ```
 
-The `login.icthub.top` Brand uses the ICThub authentication Flow, which renders username and password together. Users with a configured TOTP device receive one additional verification challenge. Direct login ends at `https://login.icthub.top/studio`; OIDC requests preserve their callback and return to the originating application.
+The `login.icthub.top` Brand uses the ICThub authentication Flow, which renders username and password together and shows a registration button that redirects to `https://register.icthub.top`. Users with a configured TOTP device receive one additional verification challenge. Direct login ends at `https://login.icthub.top/studio`; OIDC requests preserve their callback and return to the originating application.
 
 Configure the Access application as follows:
 

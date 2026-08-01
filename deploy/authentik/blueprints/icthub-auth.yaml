@@ -234,6 +234,34 @@ entries:
       timeout: 30
 
   - model: authentik_flows.flow
+    id: registration-entry-flow
+    identifiers:
+      slug: icthub-registration
+    attrs:
+      name: ICThub registration entry
+      title: 注册 ICThub
+      designation: enrollment
+      authentication: none
+      denied_action: message_continue
+      policy_engine_mode: any
+      layout: stacked
+
+  - model: authentik_stages_redirect.redirectstage
+    id: registration-redirect-stage
+    identifiers:
+      name: ICThub registration page redirect
+    attrs:
+      mode: static
+      target_static: https://register.icthub.top
+      keep_context: false
+
+  - model: authentik_flows.flowstagebinding
+    identifiers:
+      target: !KeyOf registration-entry-flow
+      stage: !KeyOf registration-redirect-stage
+      order: 10
+
+  - model: authentik_flows.flow
     id: authentication-flow
     identifiers:
       slug: icthub-authentication
@@ -255,6 +283,7 @@ entries:
         - email
         - username
       password_stage: !Find [authentik_stages_password.passwordstage, [name, default-authentication-password]]
+      enrollment_flow: !KeyOf registration-entry-flow
       recovery_flow: !Find [authentik_flows.flow, [slug, default-recovery-flow]]
       case_insensitive_matching: true
       show_matched_user: false

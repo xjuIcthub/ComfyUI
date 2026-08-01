@@ -2,7 +2,7 @@
 
 Static branded registration navigation for `register.icthub.top`. It never authenticates users, checks invitation validity, or stores passwords, invitations, API keys, OIDC secrets, or identity tokens.
 
-- `login.icthub.top`: sends users without a session to the ICThub Authentik Flow and users with an Authentik session to `/studio`.
+- `login.icthub.top`: sends users without a session to the ICThub Authentik Flow, whose registration button opens `register.icthub.top`, and sends users with an Authentik session to `/studio`.
 - `login.icthub.top/studio`: provides the post-login Studio landing page with ComfyUI, TOTP setup, and account settings links.
 - `register.icthub.top`: collects an invitation token and submits it directly to the Authentik invitation Enrollment Flow.
 - Registration is disabled by default and is enabled only through `/etc/icthub-auth/login-config.js` after SMTP acceptance.

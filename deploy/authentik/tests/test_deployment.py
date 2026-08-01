@@ -205,6 +205,16 @@ class AuthentikDeploymentTests(unittest.TestCase):
     def test_authentication_flow_and_studio_landing(self):
         identification = entries_by_model(self.blueprint, "authentik_stages_identification.identificationstage")[0]
         self.assertEqual(identification["attrs"]["password_stage"]["tag"], "Find")
+        self.assertEqual(identification["attrs"]["enrollment_flow"]["value"], "registration-entry-flow")
+        redirect = entries_by_model(self.blueprint, "authentik_stages_redirect.redirectstage")[0]
+        self.assertEqual(redirect["attrs"]["mode"], "static")
+        self.assertEqual(redirect["attrs"]["target_static"], "https://register.icthub.top")
+        registration_bindings = [
+            binding
+            for binding in entries_by_model(self.blueprint, "authentik_flows.flowstagebinding")
+            if binding["identifiers"]["target"]["value"] == "registration-entry-flow"
+        ]
+        self.assertEqual([binding["identifiers"]["order"] for binding in registration_bindings], [10])
         mfa = entries_by_model(self.blueprint, "authentik_stages_authenticator_validate.authenticatorvalidatestage")[0]
         self.assertEqual(mfa["attrs"]["not_configured_action"], "skip")
         self.assertEqual(mfa["attrs"]["device_classes"], ["totp"])
