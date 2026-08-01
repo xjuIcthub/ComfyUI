@@ -158,6 +158,16 @@ class AuthentikDeploymentTests(unittest.TestCase):
         self.assertIn('Group.objects.get(name="comfy-users")', expressions)
         self.assertIn('filter(name="comfy-users")', expressions)
 
+    def test_brand_media_paths_are_authentik_relative(self):
+        brands = entries_by_model(self.blueprint, "authentik_brands.brand")
+        for brand in brands:
+            self.assertEqual(brand["attrs"]["branding_logo"], "icthub/logo.svg")
+            self.assertEqual(brand["attrs"]["branding_favicon"], "icthub/favicon.svg")
+            self.assertEqual(
+                brand["attrs"]["branding_custom_css"],
+                {"tag": "File", "value": "/data/media/public/icthub/brand.css"},
+            )
+
     def test_oidc_redirect_is_strict_and_secret_is_external(self):
         provider = entries_by_model(self.blueprint, "authentik_providers_oauth2.oauth2provider")[0]
         self.assertEqual(provider["attrs"]["redirect_uris"][0]["matching_mode"], "strict")

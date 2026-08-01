@@ -304,9 +304,9 @@ entries:
     attrs:
       default: true
       branding_title: ICThub Identity
-      branding_logo: /media/public/icthub/logo.svg
-      branding_favicon: /media/public/icthub/favicon.svg
-      branding_custom_css: /media/public/icthub/brand.css
+      branding_logo: icthub/logo.svg
+      branding_favicon: icthub/favicon.svg
+      branding_custom_css: !File /data/media/public/icthub/brand.css
       flow_authentication: !Find [authentik_flows.flow, [slug, default-authentication-flow]]
       flow_invalidation: !Find [authentik_flows.flow, [slug, default-invalidation-flow]]
       flow_recovery: !Find [authentik_flows.flow, [slug, default-recovery-flow]]
@@ -318,9 +318,9 @@ entries:
     attrs:
       default: false
       branding_title: ICThub Identity Admin
-      branding_logo: /media/public/icthub/logo.svg
-      branding_favicon: /media/public/icthub/favicon.svg
-      branding_custom_css: /media/public/icthub/brand.css
+      branding_logo: icthub/logo.svg
+      branding_favicon: icthub/favicon.svg
+      branding_custom_css: !File /data/media/public/icthub/brand.css
       flow_authentication: !Find [authentik_flows.flow, [slug, default-authentication-flow]]
       flow_invalidation: !Find [authentik_flows.flow, [slug, default-invalidation-flow]]
       flow_recovery: !Find [authentik_flows.flow, [slug, default-recovery-flow]]
