@@ -175,6 +175,7 @@ class AuthentikDeploymentTests(unittest.TestCase):
         self.assertFalse(invitation["attrs"]["continue_flow_without_invitation"])
         user_write = entries_by_model(self.blueprint, "authentik_stages_user_write.userwritestage")[0]
         self.assertTrue(user_write["attrs"]["create_users_as_inactive"])
+        self.assertEqual(user_write["attrs"]["user_type"], "internal")
         email = entries_by_model(self.blueprint, "authentik_stages_email.emailstage")[0]
         self.assertTrue(email["attrs"]["activate_user_on_success"])
         login = entries_by_model(self.blueprint, "authentik_stages_user_login.userloginstage")[0]
@@ -200,6 +201,7 @@ class AuthentikDeploymentTests(unittest.TestCase):
         self.assertNotIn('request.context.get("invitation")', expressions)
         self.assertIn('Group.objects.get(name="comfy-users")', expressions)
         self.assertIn('filter(name="comfy-users")', expressions)
+        self.assertNotIn("ak_groups", (AUTHENTIK / "blueprints" / "icthub-auth.yaml").read_text(encoding="utf-8"))
 
     def test_brand_media_paths_are_authentik_relative(self):
         brands = entries_by_model(self.blueprint, "authentik_brands.brand")

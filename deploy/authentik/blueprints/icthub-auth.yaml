@@ -57,7 +57,7 @@ entries:
         if user is None or not user.is_active or not user.email:
             ak_message("请先完成邮箱验证。")
             return False
-        user.ak_groups.add(Group.objects.get(name="comfy-users"))
+        user.groups.add(Group.objects.get(name="comfy-users"))
         return True
 
   - model: authentik_flows.flow
@@ -147,6 +147,7 @@ entries:
     attrs:
       user_creation_mode: always_create
       create_users_as_inactive: true
+      user_type: internal
 
   - model: authentik_stages_email.emailstage
     id: verification-email-stage
@@ -240,7 +241,7 @@ entries:
       scope_name: groups
       description: Group names used by Cloudflare Access policy
       expression: |
-        return {"groups": [group.name for group in request.user.ak_groups.all()]}
+        return {"groups": [group.name for group in request.user.groups.all()]}
 
   - model: authentik_providers_oauth2.oauth2provider
     id: cloudflare-provider
@@ -284,7 +285,7 @@ entries:
       name: ICThub require comfy-users for Cloudflare OIDC
     attrs:
       expression: |
-        return request.user.is_authenticated and request.user.is_active and request.user.ak_groups.filter(name="comfy-users").exists()
+        return request.user.is_authenticated and request.user.is_active and request.user.groups.filter(name="comfy-users").exists()
 
   - model: authentik_policies.policybinding
     identifiers:
