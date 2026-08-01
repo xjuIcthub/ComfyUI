@@ -200,6 +200,7 @@ class AuthentikDeploymentTests(unittest.TestCase):
         self.assertIn('email = str(data.get("email"', expressions)
         self.assertNotIn('request.context.get("invitation")', expressions)
         self.assertIn('Group.objects.get(name="comfy-users")', expressions)
+        self.assertIn('if not request.user.is_authenticated:', expressions)
         self.assertIn('filter(name="comfy-users")', expressions)
         self.assertNotIn("ak_groups", (AUTHENTIK / "blueprints" / "icthub-auth.yaml").read_text(encoding="utf-8"))
 

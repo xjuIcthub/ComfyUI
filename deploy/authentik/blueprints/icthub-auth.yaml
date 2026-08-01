@@ -287,7 +287,9 @@ entries:
       name: ICThub require comfy-users for Cloudflare OIDC
     attrs:
       expression: |
-        return request.user.is_authenticated and request.user.is_active and request.user.groups.filter(name="comfy-users").exists()
+        if not request.user.is_authenticated:
+            return True
+        return request.user.is_active and request.user.groups.filter(name="comfy-users").exists()
 
   - model: authentik_policies.policybinding
     identifiers:
