@@ -18,6 +18,7 @@ entries:
       name: ICThub password policy
     attrs:
       password_field: password
+      error_message: 密码至少 12 个字符，并包含大写字母、小写字母、数字和符号。
       length_min: 12
       amount_uppercase: 1
       amount_lowercase: 1
@@ -115,7 +116,7 @@ entries:
       type: password
       required: true
       order: 30
-      placeholder: 至少 12 个字符
+      placeholder: 至少 12 个字符，包含大小写字母、数字和符号
 
   - model: authentik_stages_prompt.prompt
     id: password-repeat-prompt

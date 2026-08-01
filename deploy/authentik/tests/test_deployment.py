@@ -186,6 +186,7 @@ class AuthentikDeploymentTests(unittest.TestCase):
     def test_password_and_group_policies(self):
         password = entries_by_model(self.blueprint, "authentik_policies_password.passwordpolicy")[0]
         self.assertGreaterEqual(password["attrs"]["length_min"], 12)
+        self.assertTrue(password["attrs"]["error_message"])
         self.assertFalse(password["attrs"]["check_have_i_been_pwned"])
         expressions = "\n".join(
             entry["attrs"]["expression"]
