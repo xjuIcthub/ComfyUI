@@ -1,65 +1,93 @@
-# ComfyUI 控制台重构执行计划
+# ComfyUI 直接复用执行计划
 
-## 仓库目标
+## 决策
 
-现有仓库最终只保留：上游 ComfyUI engine、approved custom nodes 和不可避免的 GPU/模型兼容 patch。产品控制台使用独立 React + FastAPI 仓库。
+保留 `xjuIcthub/ComfyUI` 作为唯一 ComfyUI 仓库和实际产品入口：
 
-## 决策门
+- 不创建 `comfy-console`；
+- 不重命名为 `ComfyUI-engine`；
+- 不新增 React 工作流 UI；
+- 不新增 ComfyUI 产品 FastAPI BFF；
+- `comfy.icthub.top` 继续直接进入原生 ComfyUI。
 
-推荐保留 `xjuIcthub/ComfyUI` 作为 fork，新建 `xjuIcthub/comfy-console`。如果产品仓库必须叫 `ComfyUI`，先在维护窗口将本 fork 重命名为 `ComfyUI-engine`，再创建新仓库。
+## 目标拓扑
 
-## R0：基线
+```text
+Cloudflare Access + Authentik
+  -> Pi 5 ComfyUI CPU UI/API
+       -> ICTHub remote-compute custom node
+            -> Cisco VPN
+            -> gpu-server
+                 -> GPU worker / LTX-2
+```
 
-- 记录本地、origin、官方 upstream commit。
-- 记录 Pi 当前部署 commit、service、ports、persistent directories。
-- 核对本地与 origin 的 Authentik blueprint/test 一致性。
-- 停止向 core 增加 ICTHub 产品代码。
+## R0：稳定当前仓库
 
-## R1：资源抽取
+- 保留上游 core、原生 frontend package 和 API。
+- 记录官方 upstream、当前 fork patch 和 Pi 部署 commit。
+- Pi 使用 `--cpu --listen 127.0.0.1 --port 8188`。
+- 大模型、CUDA 和 GPU worker 不进入 Pi。
 
-迁出：
+## R1：迁出认证资源
 
-- `deploy/login-page`（含 `/studio` 入口）→ `auth-login`；
-- `deploy/authentik` → identity operations；
-- Cloudflare/Pi 主机配置 → platform operations；
-- ICTHub plans → 新控制台/gpu-server docs。
+- `deploy/login-page`（含 login root redirect、注册和 `/studio`）迁入 `auth-login`。
+- Authentik compose/blueprint/manage CLI/email/backup 进入身份运维边界。
+- 当前非敏感快照保留在 `resources/auth-login-legacy/`。
+- 新位置完成验收和回滚前不删除旧部署。
 
-当前非敏感页面快照已复制到 `resources/auth-login-legacy/`，用于回归；`login.icthub.top` 只允许精确根路径（固定 session-aware redirect）与 `/studio(/.*)?` 指向静态服务，其余路径保留 Authentik。不得把 tunnel credential、secret env 或机器私有日志复制到新仓库。
+## R2：remote-compute custom node
 
-## R2：控制台 API
+建议目录：
 
-FastAPI 建立 user/workflow/version/job/artifact/quota/audit 模型，通过 service-authenticated API 调用 `gpu-server`。浏览器不访问 raw ComfyUI。
+```text
+custom_nodes/icthub_remote_compute/
+  nodes.py
+  client.py
+  contracts.py
+  tests/
+```
 
-产品 API：submit/status/events/cancel/uploads/artifacts/workflows。内部 adapter 仅依赖受 contract test 固定的 `/prompt`、`/ws`、`/history`、upload、view、cancel，不依赖 `/internal/*`。
+第一批节点：
 
-## R3：GPU engine
+- GPU capability/status；
+- remote LTX text/image-to-video；
+- remote job wait/cancel；
+- remote artifact load/save。
 
-- `gpu-server` 启动私有 ComfyUI 进程并管理端口/健康/退出。
-- 安装固定版本的 approved custom nodes/models。
-- 只允许 workflow catalog 与 node/parameter allowlist。
-- 执行输出上传 artifact service，不传播 engine 本地路径。
+节点调用 `gpu-server`，使用 artifact ID 和幂等 job ID，不传播服务器绝对路径，不把 service token 写入 workflow。
 
-## R4：React 产品
+## R3：并发与事件
 
-复用 xju-feiyue token、56px shell、resizable panels 和可访问交互，构建 workflow/assets/queue/canvas/properties/logs。SSE/WebSocket 只连接 FastAPI。
+- 网络请求和长任务不能阻塞 ComfyUI aiohttp event loop。
+- job 状态通过轮询或受控 SSE bridge 转换为节点执行状态。
+- VPN/worker 断开后返回明确可操作错误。
+- cancel_requested 与实际 cancelled 分离。
+- workflow 重试使用同一 idempotency key，避免重复 GPU 执行。
 
-## R5：灰度切换
+## R4：工作流复用
 
-- 新控制台并行域名/端口验收。
-- `comfy.icthub.top` 切换到产品控制台。
-- raw engine 仅 Cisco VPN/admin 可达。
-- 原 Pi CPU ComfyUI 保留 7–14 天后下线。
+- 直接复用 ComfyUI 官方 workflow JSON 和 LTX 模板。
+- 建立团队支持的 workflow catalog 文档，而不是新做产品数据库。
+- 固定 custom node、模型 profile 和参数兼容矩阵。
+- 只暴露已配置能力，避免用户提交无法执行的模型。
 
-## R6：清理 fork
+## R5：部署与验收
 
-- 删除已迁移 `deploy` 与平台计划，但保留指向新位置的迁移说明。
-- 配置官方 upstream，同步策略和 patch inventory。
-- 每次上游更新运行 engine adapter contract tests。
+- 保持现有 `comfy.icthub.top -> 127.0.0.1:8188`。
+- 安装 custom node 的锁定 release。
+- secret 由 `/etc/icthub/comfy-remote.env` 或 systemd credential 提供。
+- 真实运行一个 LTX Fast I2V 和取消/失败场景。
+- 验证 Pi reboot、VPN loss、gpu-server restart、artifact 回传。
+
+## 已接受限制
+
+原生 ComfyUI + Cloudflare Access 是共享可信工作台，不提供完整产品级租户隔离、配额、计费和审计。当前用户规模下先接受；未来确有需求时再增加薄插件/网关，不提前维护第二套产品。
 
 ## 完成门
 
-- 用户身份与 artifact 权限在产品层可验证。
-- ComfyUI multi-user header 不作为可信身份。
-- 浏览器无法调用 raw queue/history/interrupt。
-- 上游升级与产品发布可独立进行。
-- Pi 不再安装 CPU Torch/ComfyUI 执行环境。
+- 原生 UI/API 无重复实现。
+- Pi 只做 CPU 工作流和入口。
+- GPU 调度只在 gpu-server。
+- service token 不进入浏览器、workflow 或 Git。
+- 认证资源从 core 生命周期逐步拆出。
+- 上游同步不被产品前端重构阻塞。
