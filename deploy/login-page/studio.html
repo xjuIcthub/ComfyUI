@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#080b14">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; frame-ancestors 'none'; object-src 'none'">
+  <meta name="description" content="ICThub Studio 入口与账号安全设置">
+  <title>ICThub Studio</title>
+  <link rel="stylesheet" href="/studio/studio.css">
+</head>
+<body>
+  <div class="ambient" aria-hidden="true">
+    <div class="glow glow-violet"></div>
+    <div class="glow glow-cyan"></div>
+    <div class="grid"></div>
+  </div>
+
+  <main class="studio-shell">
+    <header class="studio-header">
+      <a class="brand" href="/studio" aria-label="ICThub Studio">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 42 42"><path d="M11 8.5h20a3 3 0 0 1 3 3v19a3 3 0 0 1-3 3H11a3 3 0 0 1-3-3v-19a3 3 0 0 1 3-3Z"/><path d="M16 15.5h10M16 21h7M16 26.5h10"/><circle cx="29.5" cy="21" r="2.5"/></svg>
+        </span>
+        <span><strong>ICThub</strong><small>Studio</small></span>
+      </a>
+      <a class="settings-link" href="/if/user/#/settings">账号设置</a>
+    </header>
+
+    <section class="hero">
+      <p class="eyebrow"><span></span>AUTHENTICATED WORKSPACE</p>
+      <h1>欢迎进入 <em>ICThub Studio</em></h1>
+      <p>从这里进入工作台，或为账号绑定 TOTP 验证器。登录请求来自其他应用时，Authentik 会自动返回原应用，不经过此页面。</p>
+    </section>
+
+    <section class="action-grid" aria-label="Studio 功能">
+      <a class="action-card primary" href="https://comfy.icthub.top">
+        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7.5h16M7.5 4v7M16.5 4v7M7.5 16.5h9M12 12v9"/></svg></span>
+        <span class="copy"><strong>进入 ComfyUI</strong><small>打开受 Cloudflare Access 保护的 AI 工作台</small></span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+
+      <a class="action-card" href="/if/flow/default-authenticator-totp-setup/?next=%2Fstudio">
+        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.5 19 6v5.8c0 4.2-2.7 7.6-7 8.7-4.3-1.1-7-4.5-7-8.7V6l7-2.5Z"/><path d="m9 12 2 2 4-4"/></svg></span>
+        <span class="copy"><strong>绑定 TOTP 验证器</strong><small>使用验证器 App 扫码，为新会话增加动态验证码</small></span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+
+      <a class="action-card" href="/if/user/#/settings">
+        <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5.5 20c.5-4 2.7-6 6.5-6s6 2 6.5 6"/></svg></span>
+        <span class="copy"><strong>管理账号</strong><small>查看个人资料、验证器和已登录会话</small></span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    </section>
+
+    <p class="security-note">普通用户可以选择绑定 TOTP；绑定后，登录时会在用户名和密码之后进行一次动态码验证。</p>
+  </main>
+</body>
+</html>

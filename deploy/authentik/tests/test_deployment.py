@@ -84,6 +84,10 @@ class LoginPageTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertIn("使用邀请码注册", body)
 
+        status, _, body = self.request("/studio", "login.icthub.top")
+        self.assertEqual(status, 200)
+        self.assertIn("绑定 TOTP 验证器", body)
+
     def test_non_public_files_are_not_served_and_queries_are_redacted(self):
         status, _, _ = self.request("/README.md", "login.icthub.top")
         self.assertEqual(status, 404)
@@ -184,9 +188,33 @@ class AuthentikDeploymentTests(unittest.TestCase):
         self.assertTrue(all(set(prompt["identifiers"]) == {"name"} for prompt in prompts))
         email_prompt = next(prompt for prompt in prompts if prompt["attrs"]["field_key"] == "email")
         self.assertEqual(email_prompt["attrs"]["type"], "hidden")
-        bindings = entries_by_model(self.blueprint, "authentik_flows.flowstagebinding")
+        bindings = [
+            binding
+            for binding in entries_by_model(self.blueprint, "authentik_flows.flowstagebinding")
+            if binding["identifiers"]["target"]["value"] == "enrollment-flow"
+        ]
         self.assertEqual([binding["identifiers"]["order"] for binding in bindings], [10, 20, 30, 40, 50])
         self.assertTrue(bindings[0]["attrs"]["evaluate_on_plan"])
+
+    def test_authentication_flow_and_studio_landing(self):
+        identification = entries_by_model(self.blueprint, "authentik_stages_identification.identificationstage")[0]
+        self.assertEqual(identification["attrs"]["password_stage"]["tag"], "Find")
+        mfa = entries_by_model(self.blueprint, "authentik_stages_authenticator_validate.authenticatorvalidatestage")[0]
+        self.assertEqual(mfa["attrs"]["not_configured_action"], "skip")
+        self.assertEqual(mfa["attrs"]["device_classes"], ["totp"])
+        bindings = [
+            binding
+            for binding in entries_by_model(self.blueprint, "authentik_flows.flowstagebinding")
+            if binding["identifiers"]["target"]["value"] == "authentication-flow"
+        ]
+        self.assertEqual([binding["identifiers"]["order"] for binding in bindings], [10, 20, 100])
+        login_brand = next(
+            brand
+            for brand in entries_by_model(self.blueprint, "authentik_brands.brand")
+            if brand["identifiers"]["domain"] == "login.icthub.top"
+        )
+        self.assertEqual(login_brand["attrs"]["flow_authentication"]["value"], "authentication-flow")
+        self.assertEqual(login_brand["attrs"]["default_application"]["value"], "studio-application")
 
     def test_password_and_group_policies(self):
         password = entries_by_model(self.blueprint, "authentik_policies_password.passwordpolicy")[0]
@@ -229,10 +257,13 @@ class AuthentikDeploymentTests(unittest.TestCase):
         hosts = [entry.get("hostname") for entry in tunnel["ingress"] if "hostname" in entry]
         self.assertEqual(
             hosts,
-            ["login.icthub.top", "register.icthub.top", "auth.icthub.top", "auth-admin.icthub.top", "comfy.icthub.top"],
+            ["login.icthub.top", "login.icthub.top", "register.icthub.top", "auth.icthub.top", "auth-admin.icthub.top", "comfy.icthub.top"],
         )
+        login_routes = [entry for entry in tunnel["ingress"] if entry.get("hostname") == "login.icthub.top"]
+        self.assertEqual(login_routes[0]["path"], "^/studio(/.*)?$")
+        self.assertEqual(login_routes[0]["service"], "http://127.0.0.1:8190")
+        self.assertEqual(login_routes[1]["service"], "http://127.0.0.1:9000")
         services = {entry.get("hostname"): entry["service"] for entry in tunnel["ingress"] if "hostname" in entry}
-        self.assertEqual(services["login.icthub.top"], "http://127.0.0.1:9000")
         self.assertEqual(services["auth.icthub.top"], "http://127.0.0.1:9000")
         self.assertEqual(services["auth-admin.icthub.top"], "http://127.0.0.1:9000")
         origins = {entry.get("hostname"): entry.get("originRequest", {}) for entry in tunnel["ingress"] if "hostname" in entry}

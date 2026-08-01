@@ -80,7 +80,7 @@ sudo python3 /home/winbeau/services/authentik-deploy/manage.py health --wait 30
 Expected listeners:
 
 ```text
-127.0.0.1:8190  branded registration page
+127.0.0.1:8190  branded registration and Studio landing pages
 127.0.0.1:9000  Authentik login and identity endpoints
 ```
 
@@ -161,6 +161,8 @@ User info URL:     https://login.icthub.top/application/o/userinfo/
 JWKS URL:          https://login.icthub.top/application/o/icthub-cloudflare-access/jwks/
 Scopes:            openid profile email groups
 ```
+
+The `login.icthub.top` Brand uses the ICThub authentication Flow, which renders username and password together. Users with a configured TOTP device receive one additional verification challenge. Direct login ends at `https://login.icthub.top/studio`; OIDC requests preserve their callback and return to the originating application.
 
 Configure the Access application as follows:
 

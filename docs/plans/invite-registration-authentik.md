@@ -146,14 +146,17 @@ Cloudflare Access 只允许包含 `comfy-users` 组声明的 OIDC 用户访问 C
 ### 已有用户登录
 
 ```text
-login.icthub.top
-  → comfy.icthub.top
+直接访问 login.icthub.top
+  → Authentik 品牌登录页
+  → login.icthub.top/studio
+
+访问 comfy.icthub.top 或其他 OIDC 应用
   → Cloudflare Access Instant Auth
   → Authentik 品牌登录页
-  → ComfyUI
+  → 返回原应用
 ```
 
-Access 会话有效时可直接进入 ComfyUI。Access 与 Authentik 会话期限统一采用已确认的 30 天策略；管理员入口使用更短会话并保留独立撤销能力。
+用户名和密码在同一个 Authentik Identification Stage 中输入；已绑定 TOTP 的用户随后完成一次动态码验证。Access 会话有效时可直接进入 ComfyUI。Access 与 Authentik 会话期限统一采用已确认的 30 天策略；管理员入口使用更短会话并保留独立撤销能力。
 
 ### 找回密码
 

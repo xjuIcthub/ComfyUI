@@ -233,6 +233,62 @@ entries:
       negate: false
       timeout: 30
 
+  - model: authentik_flows.flow
+    id: authentication-flow
+    identifiers:
+      slug: icthub-authentication
+    attrs:
+      name: ICThub authentication
+      title: 登录 ICThub
+      designation: authentication
+      authentication: none
+      denied_action: message_continue
+      policy_engine_mode: any
+      layout: stacked
+
+  - model: authentik_stages_identification.identificationstage
+    id: authentication-identification-stage
+    identifiers:
+      name: ICThub username and password
+    attrs:
+      user_fields:
+        - email
+        - username
+      password_stage: !Find [authentik_stages_password.passwordstage, [name, default-authentication-password]]
+      recovery_flow: !Find [authentik_flows.flow, [slug, default-recovery-flow]]
+      case_insensitive_matching: true
+      show_matched_user: false
+      pretend_user_exists: true
+      enable_remember_me: false
+
+  - model: authentik_stages_authenticator_validate.authenticatorvalidatestage
+    id: authentication-mfa-stage
+    identifiers:
+      name: ICThub optional TOTP validation
+    attrs:
+      not_configured_action: skip
+      device_classes:
+        - totp
+      last_auth_threshold: seconds=0
+
+  - model: authentik_flows.flowstagebinding
+    identifiers:
+      target: !KeyOf authentication-flow
+      stage: !KeyOf authentication-identification-stage
+      order: 10
+
+  - model: authentik_flows.flowstagebinding
+    identifiers:
+      target: !KeyOf authentication-flow
+      stage: !KeyOf authentication-mfa-stage
+      order: 20
+
+  - model: authentik_flows.flowstagebinding
+    identifiers:
+      target: !KeyOf authentication-flow
+      stage: !KeyOf enrollment-login-stage
+      order: 100
+
   - model: authentik_providers_oauth2.scopemapping
     id: groups-scope
     identifiers:
@@ -301,6 +357,15 @@ entries:
       negate: false
       timeout: 30
 
+  - model: authentik_core.application
+    id: studio-application
+    identifiers:
+      slug: icthub-studio
+    attrs:
+      name: ICThub Studio
+      meta_launch_url: https://login.icthub.top/studio
+      policy_engine_mode: any
+
   - model: authentik_brands.brand
     identifiers:
       domain: login.icthub.top
@@ -310,7 +375,8 @@ entries:
       branding_logo: icthub/logo.svg
       branding_favicon: icthub/favicon.svg
       branding_custom_css: !File /data/media/public/icthub/brand.css
-      flow_authentication: !Find [authentik_flows.flow, [slug, default-authentication-flow]]
+      default_application: !KeyOf studio-application
+      flow_authentication: !KeyOf authentication-flow
       flow_invalidation: !Find [authentik_flows.flow, [slug, default-invalidation-flow]]
       flow_recovery: !Find [authentik_flows.flow, [slug, default-recovery-flow]]
       flow_unenrollment: !Find [authentik_flows.flow, [slug, default-unenrollment-flow]]

@@ -28,6 +28,11 @@ class LoginPageHandler(SimpleHTTPRequestHandler):
         path = urlsplit(self.path).path
         if path == "/":
             return "/register.html" if host == "register.icthub.top" else "/index.html"
+        if host == "login.icthub.top":
+            if path in {"/studio", "/studio/"}:
+                return "/studio.html"
+            if path == "/studio/studio.css":
+                return "/studio.css"
         return path if path in PUBLIC_FILES else None
 
     def _serve(self, head_only=False):
