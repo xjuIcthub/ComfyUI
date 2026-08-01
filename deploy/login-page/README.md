@@ -2,7 +2,7 @@
 
 Static branded registration navigation for `register.icthub.top`. It never authenticates users, checks invitation validity, or stores passwords, invitations, API keys, OIDC secrets, or identity tokens.
 
-- `login.icthub.top`: routes directly to Authentik and is the Cloudflare OIDC login host.
+- `login.icthub.top`: sends users without a session to the ICThub Authentik Flow and users with an Authentik session to `/studio`.
 - `login.icthub.top/studio`: provides the post-login Studio landing page with ComfyUI, TOTP setup, and account settings links.
 - `register.icthub.top`: collects an invitation token and submits it directly to the Authentik invitation Enrollment Flow.
 - Registration is disabled by default and is enabled only through `/etc/icthub-auth/login-config.js` after SMTP acceptance.
@@ -23,7 +23,7 @@ The server exposes only the public HTML/CSS/JavaScript allowlist, adds browser s
 
 ## Deployment boundary
 
-- the public registration and Studio landing pages listen locally on `127.0.0.1:8190`;
+- the fixed login-root redirect plus public registration and Studio landing pages listen locally on `127.0.0.1:8190`;
 - Authentik serves every other `login.icthub.top` path and `auth.icthub.top` on `127.0.0.1:9000`;
 - ComfyUI remains protected by Cloudflare Access on `127.0.0.1:8188`;
 - `auth.icthub.top` is public through Tunnel but must not use an Access policy that depends on Authentik;
@@ -67,7 +67,7 @@ Expected local listeners:
 
 ```text
 127.0.0.1:8188  ComfyUI
-127.0.0.1:8190  branded registration and Studio landing pages
+127.0.0.1:8190  login-root redirect, registration, and Studio landing pages
 127.0.0.1:9000  Authentik
 ```
 

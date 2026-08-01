@@ -80,7 +80,7 @@ sudo python3 /home/winbeau/services/authentik-deploy/manage.py health --wait 30
 Expected listeners:
 
 ```text
-127.0.0.1:8190  branded registration and Studio landing pages
+127.0.0.1:8190  login-root redirect, registration, and Studio landing pages
 127.0.0.1:9000  Authentik login and identity endpoints
 ```
 

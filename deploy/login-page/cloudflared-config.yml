@@ -4,6 +4,12 @@ protocol: http2
 
 ingress:
   - hostname: login.icthub.top
+    path: ^/$
+    service: http://127.0.0.1:8190
+    originRequest:
+      connectTimeout: 10s
+      httpHostHeader: login.icthub.top
+  - hostname: login.icthub.top
     path: ^/studio(/.*)?$
     service: http://127.0.0.1:8190
     originRequest:

@@ -64,9 +64,11 @@ class LoginPageTests(unittest.TestCase):
         cls.server.shutdown()
         cls.thread.join()
 
-    def request(self, path, host):
+    def request(self, path, host, extra_headers=None):
         connection = http.client.HTTPConnection("127.0.0.1", self.server.server_address[1])
-        connection.request("GET", path, headers={"Host": host})
+        headers = {"Host": host}
+        headers.update(extra_headers or {})
+        connection.request("GET", path, headers=headers)
         response = connection.getresponse()
         body = response.read().decode("utf-8")
         headers = dict(response.getheaders())
@@ -74,11 +76,15 @@ class LoginPageTests(unittest.TestCase):
         return response.status, headers, body
 
     def test_host_routes_and_security_headers(self):
-        status, headers, body = self.request("/", "login.icthub.top")
-        self.assertEqual(status, 200)
-        self.assertIn("登录工作台", body)
+        status, headers, _ = self.request("/", "login.icthub.top")
+        self.assertEqual(status, 302)
+        self.assertEqual(headers["Location"], "/if/flow/icthub-authentication/?next=%2Fstudio")
         self.assertEqual(headers["X-Frame-Options"], "DENY")
         self.assertEqual(headers["Referrer-Policy"], "no-referrer")
+
+        status, headers, _ = self.request("/", "login.icthub.top", {"Cookie": "authentik_session=session"})
+        self.assertEqual(status, 302)
+        self.assertEqual(headers["Location"], "/studio")
 
         status, _, body = self.request("/", "register.icthub.top")
         self.assertEqual(status, 200)
@@ -104,8 +110,8 @@ class LoginPageTests(unittest.TestCase):
             follow_redirects=False,
             extra_headers={"Accept": "text/html", "User-Agent": "Mozilla/5.0"},
         )
-        self.assertEqual(status, 200)
-        self.assertIsInstance(body, bytes)
+        self.assertEqual(status, 302)
+        self.assertIsNone(body)
 
     def test_invitation_name_is_slug_safe(self):
         captured = {}
@@ -257,12 +263,14 @@ class AuthentikDeploymentTests(unittest.TestCase):
         hosts = [entry.get("hostname") for entry in tunnel["ingress"] if "hostname" in entry]
         self.assertEqual(
             hosts,
-            ["login.icthub.top", "login.icthub.top", "register.icthub.top", "auth.icthub.top", "auth-admin.icthub.top", "comfy.icthub.top"],
+            ["login.icthub.top", "login.icthub.top", "login.icthub.top", "register.icthub.top", "auth.icthub.top", "auth-admin.icthub.top", "comfy.icthub.top"],
         )
         login_routes = [entry for entry in tunnel["ingress"] if entry.get("hostname") == "login.icthub.top"]
-        self.assertEqual(login_routes[0]["path"], "^/studio(/.*)?$")
+        self.assertEqual(login_routes[0]["path"], "^/$")
         self.assertEqual(login_routes[0]["service"], "http://127.0.0.1:8190")
-        self.assertEqual(login_routes[1]["service"], "http://127.0.0.1:9000")
+        self.assertEqual(login_routes[1]["path"], "^/studio(/.*)?$")
+        self.assertEqual(login_routes[1]["service"], "http://127.0.0.1:8190")
+        self.assertEqual(login_routes[2]["service"], "http://127.0.0.1:9000")
         services = {entry.get("hostname"): entry["service"] for entry in tunnel["ingress"] if "hostname" in entry}
         self.assertEqual(services["auth.icthub.top"], "http://127.0.0.1:9000")
         self.assertEqual(services["auth-admin.icthub.top"], "http://127.0.0.1:9000")

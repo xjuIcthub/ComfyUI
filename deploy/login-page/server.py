@@ -20,6 +20,21 @@ PREVIEW_HOSTS = {"127.0.0.1", "localhost", "::1"}
 class LoginPageHandler(SimpleHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
 
+    def _redirect_login_root(self):
+        host = self.headers.get("Host", "").rsplit(":", 1)[0].strip("[]").lower()
+        if host != "login.icthub.top" or urlsplit(self.path).path != "/":
+            return False
+        target = (
+            "/studio"
+            if "authentik_session=" in self.headers.get("Cookie", "")
+            else "/if/flow/icthub-authentication/?next=%2Fstudio"
+        )
+        self.send_response(302)
+        self.send_header("Location", target)
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+        return True
+
     def _public_path(self):
         host = self.headers.get("Host", "").rsplit(":", 1)[0].strip("[]").lower()
         if host not in PUBLIC_HOSTS | PREVIEW_HOSTS:
@@ -47,10 +62,12 @@ class LoginPageHandler(SimpleHTTPRequestHandler):
             super().do_GET()
 
     def do_GET(self):
-        self._serve()
+        if not self._redirect_login_root():
+            self._serve()
 
     def do_HEAD(self):
-        self._serve(head_only=True)
+        if not self._redirect_login_root():
+            self._serve(head_only=True)
 
     def end_headers(self):
         self.send_header("Cache-Control", "no-store")
