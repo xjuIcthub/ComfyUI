@@ -28,7 +28,14 @@ install -d -o 70 -g 70 -m 0750 "${DATA_DIR}/postgresql"
 install -d -o root -g root -m 0750 "${SECRET_DIR}"
 
 if [[ $(realpath "${SOURCE_DIR}") != $(realpath "${DEPLOY_DIR}") ]]; then
-  find "${DEPLOY_DIR}" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
+  # Preserve bind mount directory inodes so running containers see updated files.
+  for mounted_dir in blueprints custom-templates media; do
+    install -d -o root -g 1000 -m 0750 "${DEPLOY_DIR}/${mounted_dir}"
+    find "${DEPLOY_DIR}/${mounted_dir}" -mindepth 1 -delete
+  done
+  find "${DEPLOY_DIR}" -mindepth 1 -maxdepth 1 \
+    ! -name blueprints ! -name custom-templates ! -name media \
+    -exec rm -rf -- {} +
   cp -a "${SOURCE_DIR}/." "${DEPLOY_DIR}/"
 fi
 chown -R root:1000 "${DEPLOY_DIR}"

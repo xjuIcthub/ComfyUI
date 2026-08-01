@@ -126,6 +126,12 @@ class AuthentikDeploymentTests(unittest.TestCase):
         self.assertNotIn("ports", services["postgresql"])
         self.assertNotIn("/var/run/docker.sock", (AUTHENTIK / "compose.yml").read_text(encoding="utf-8"))
 
+    def test_installer_preserves_bind_mount_directories(self):
+        installer = (AUTHENTIK / "install.sh").read_text(encoding="utf-8")
+        self.assertIn("for mounted_dir in blueprints custom-templates media", installer)
+        for name in ("blueprints", "custom-templates", "media"):
+            self.assertIn(f"! -name {name}", installer)
+
     def test_enrollment_is_invitation_only_and_email_gated(self):
         invitation = entries_by_model(self.blueprint, "authentik_stages_invitation.invitationstage")[0]
         self.assertFalse(invitation["attrs"]["continue_flow_without_invitation"])
