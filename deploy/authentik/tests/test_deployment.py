@@ -181,6 +181,7 @@ class AuthentikDeploymentTests(unittest.TestCase):
         self.assertTrue(all(set(prompt["identifiers"]) == {"name"} for prompt in prompts))
         bindings = entries_by_model(self.blueprint, "authentik_flows.flowstagebinding")
         self.assertEqual([binding["identifiers"]["order"] for binding in bindings], [10, 20, 30, 40, 50])
+        self.assertTrue(bindings[0]["attrs"]["evaluate_on_plan"])
 
     def test_password_and_group_policies(self):
         password = entries_by_model(self.blueprint, "authentik_policies_password.passwordpolicy")[0]
