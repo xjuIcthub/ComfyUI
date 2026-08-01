@@ -140,7 +140,7 @@ Install the updated `deploy/login-page/cloudflared-config.yml` and systemd units
 
 - Public through Tunnel; do **not** put it behind an Access policy that depends on this Authentik instance.
 - Apply WAF/rate limits to authentication, enrollment, verification, and recovery paths.
-- Set `Referrer-Policy: no-referrer` and redact the `itoken` query parameter from Logpush, request analytics, support captures, and reverse-proxy access logs.
+- Set `Referrer-Policy: no-referrer` and redact the `itoken` query parameter from Logpush, request analytics, support captures, and reverse-proxy access logs. The production Compose file also forces Authentik's log level to `warning` so its request logger does not retain invitation URLs.
 - Do not add Bypass rules.
 
 ### `auth-admin.icthub.top`

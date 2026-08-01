@@ -161,6 +161,8 @@ class AuthentikDeploymentTests(unittest.TestCase):
         self.assertEqual(services["server"]["ports"], ["127.0.0.1:9000:9000"])
         self.assertNotIn("ports", services["postgresql"])
         self.assertNotIn("/var/run/docker.sock", (AUTHENTIK / "compose.yml").read_text(encoding="utf-8"))
+        self.assertEqual(services["server"]["environment"]["AUTHENTIK_LOG_LEVEL"], "warning")
+        self.assertEqual(services["worker"]["environment"]["AUTHENTIK_LOG_LEVEL"], "warning")
 
     def test_installer_preserves_bind_mount_directories(self):
         installer = (AUTHENTIK / "install.sh").read_text(encoding="utf-8")

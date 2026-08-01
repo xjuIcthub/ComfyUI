@@ -6,6 +6,8 @@ x-authentik-service: &authentik-service
   env_file:
     - path: /etc/icthub-auth/authentik.env
       required: true
+  environment:
+    AUTHENTIK_LOG_LEVEL: warning
   volumes:
     - /home/winbeau/services/authentik-data/data:/data
     - ./blueprints:/blueprints/icthub:ro
