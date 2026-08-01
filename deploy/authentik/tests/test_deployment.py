@@ -231,6 +231,7 @@ class AuthentikDeploymentTests(unittest.TestCase):
             ["login.icthub.top", "register.icthub.top", "auth.icthub.top", "auth-admin.icthub.top", "comfy.icthub.top"],
         )
         services = {entry.get("hostname"): entry["service"] for entry in tunnel["ingress"] if "hostname" in entry}
+        self.assertEqual(services["login.icthub.top"], "http://127.0.0.1:9000")
         self.assertEqual(services["auth.icthub.top"], "http://127.0.0.1:9000")
         self.assertEqual(services["auth-admin.icthub.top"], "http://127.0.0.1:9000")
         origins = {entry.get("hostname"): entry.get("originRequest", {}) for entry in tunnel["ingress"] if "hostname" in entry}

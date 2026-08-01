@@ -309,7 +309,7 @@ def local_health(args):
 
 def public_acceptance(args):
     checks = [
-        ("login", "https://login.icthub.top", {200}, None),
+        ("login", "https://login.icthub.top", {200, 302}, "not-access"),
         ("register", "https://register.icthub.top", {200}, None),
         ("auth", "https://auth.icthub.top", {200, 302}, "not-access"),
         ("auth-admin", "https://auth-admin.icthub.top", {302, 403}, "access"),
@@ -328,7 +328,7 @@ def public_acceptance(args):
         if boundary == "access" and not is_access:
             raise ConfigError(f"{name} is not protected by Cloudflare Access")
         if boundary == "not-access" and is_access:
-            raise ConfigError("auth.icthub.top must not be protected by the Authentik-dependent Access policy")
+            raise ConfigError(f"{name} must not be protected by the Authentik-dependent Access policy")
         print(f"{name}: HTTP {status}")
 
 

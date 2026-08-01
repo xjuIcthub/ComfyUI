@@ -301,6 +301,20 @@ entries:
 
   - model: authentik_brands.brand
     identifiers:
+      domain: login.icthub.top
+    attrs:
+      default: false
+      branding_title: ICThub Login
+      branding_logo: icthub/logo.svg
+      branding_favicon: icthub/favicon.svg
+      branding_custom_css: !File /data/media/public/icthub/brand.css
+      flow_authentication: !Find [authentik_flows.flow, [slug, default-authentication-flow]]
+      flow_invalidation: !Find [authentik_flows.flow, [slug, default-invalidation-flow]]
+      flow_recovery: !Find [authentik_flows.flow, [slug, default-recovery-flow]]
+      flow_unenrollment: !Find [authentik_flows.flow, [slug, default-unenrollment-flow]]
+
+  - model: authentik_brands.brand
+    identifiers:
       domain: auth.icthub.top
     attrs:
       default: false

@@ -1,8 +1,8 @@
 # ICThub authentication entry pages
 
-Static branded navigation for `login.icthub.top` and `register.icthub.top`. It never authenticates users, checks invitation validity, or stores passwords, invitations, API keys, OIDC secrets, or identity tokens.
+Static branded registration navigation for `register.icthub.top`. It never authenticates users, checks invitation validity, or stores passwords, invitations, API keys, OIDC secrets, or identity tokens.
 
-- `login.icthub.top`: sends existing users to the Cloudflare Access-protected ComfyUI application.
+- `login.icthub.top`: routes directly to Authentik and is the Cloudflare OIDC login host.
 - `register.icthub.top`: collects an invitation token and submits it directly to the Authentik invitation Enrollment Flow.
 - Registration is disabled by default and is enabled only through `/etc/icthub-auth/login-config.js` after SMTP acceptance.
 
@@ -12,23 +12,18 @@ Static branded navigation for `login.icthub.top` and `register.icthub.top`. It n
 python3 deploy/login-page/server.py --bind 127.0.0.1 --port 8080
 ```
 
-Use Host headers to preview both roots:
+Preview the registration page with its Host header:
 
 ```bash
-curl -H 'Host: login.icthub.top' http://127.0.0.1:8080/
 curl -H 'Host: register.icthub.top' http://127.0.0.1:8080/
 ```
 
-The server exposes only the public HTML/CSS/JavaScript allowlist, adds browser security headers, rejects unknown hosts, and removes query strings from access logs. An optional ComfyUI-relative return path is accepted only when the parsed destination remains on `https://comfy.icthub.top`:
-
-```text
-https://login.icthub.top/?returnTo=/workflows
-```
+The server exposes only the public HTML/CSS/JavaScript allowlist, adds browser security headers, rejects unknown hosts, and removes query strings from access logs.
 
 ## Deployment boundary
 
-- both public pages listen locally on `127.0.0.1:8190`;
-- Authentik listens locally on `127.0.0.1:9000`;
+- the public registration page listens locally on `127.0.0.1:8190`;
+- Authentik serves `login.icthub.top` and `auth.icthub.top` on `127.0.0.1:9000`;
 - ComfyUI remains protected by Cloudflare Access on `127.0.0.1:8188`;
 - `auth.icthub.top` is public through Tunnel but must not use an Access policy that depends on Authentik;
 - `auth-admin.icthub.top` uses the existing GitHub administrator IdP and Authentik MFA;
@@ -71,7 +66,7 @@ Expected local listeners:
 
 ```text
 127.0.0.1:8188  ComfyUI
-127.0.0.1:8190  branded login and registration pages
+127.0.0.1:8190  branded registration page
 127.0.0.1:9000  Authentik
 ```
 

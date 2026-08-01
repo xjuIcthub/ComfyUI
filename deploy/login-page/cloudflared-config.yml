@@ -4,7 +4,7 @@ protocol: http2
 
 ingress:
   - hostname: login.icthub.top
-    service: http://127.0.0.1:8190
+    service: http://127.0.0.1:9000
     originRequest:
       connectTimeout: 10s
       httpHostHeader: login.icthub.top

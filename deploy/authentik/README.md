@@ -80,8 +80,8 @@ sudo python3 /home/winbeau/services/authentik-deploy/manage.py health --wait 30
 Expected listeners:
 
 ```text
-127.0.0.1:8190  branded login and registration pages
-127.0.0.1:9000  Authentik
+127.0.0.1:8190  branded registration page
+127.0.0.1:9000  Authentik login and identity endpoints
 ```
 
 ## 3. Initial Authentik setup
@@ -155,10 +155,10 @@ Install the updated `deploy/login-page/cloudflared-config.yml` and systemd units
 Create one generic OIDC login method using the values generated in `/etc/icthub-auth/authentik.env`.
 
 ```text
-Authorization URL: https://auth.icthub.top/application/o/authorize/
-Token URL:         https://auth.icthub.top/application/o/token/
-User info URL:     https://auth.icthub.top/application/o/userinfo/
-JWKS URL:          https://auth.icthub.top/application/o/icthub-cloudflare-access/jwks/
+Authorization URL: https://login.icthub.top/application/o/authorize/
+Token URL:         https://login.icthub.top/application/o/token/
+User info URL:     https://login.icthub.top/application/o/userinfo/
+JWKS URL:          https://login.icthub.top/application/o/icthub-cloudflare-access/jwks/
 Scopes:            openid profile email groups
 ```
 
