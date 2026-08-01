@@ -92,7 +92,7 @@ Do not expose the initial setup flow publicly. From an administrator workstation
 ssh -L 9000:127.0.0.1:9000 winbeau@<pi-address>
 ```
 
-Open `http://127.0.0.1:9000/if/flow/initial-setup/`, set the initial administrator password, and verify under **System → Blueprints** that `ICThub invitation enrollment and Cloudflare Access` applied successfully. A failed blueprint is a stop condition; do not manually approximate missing objects without recording the difference.
+Open `http://127.0.0.1:9000/if/flow/initial-setup/`, set the initial administrator password, and verify under **Customization → Blueprints** (direct path `/if/admin/#/blueprints/instances`) that `ICThub invitation enrollment and Cloudflare Access` applied successfully. A failed blueprint is a stop condition; do not manually approximate missing objects without recording the difference.
 
 Verify these objects:
 
