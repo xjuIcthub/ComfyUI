@@ -217,6 +217,7 @@ class AuthentikDeploymentTests(unittest.TestCase):
     def test_oidc_redirect_is_strict_and_secret_is_external(self):
         provider = entries_by_model(self.blueprint, "authentik_providers_oauth2.oauth2provider")[0]
         self.assertEqual(provider["attrs"]["redirect_uris"][0]["matching_mode"], "strict")
+        self.assertEqual(provider["attrs"]["grant_types"], ["authorization_code"])
         self.assertEqual(provider["attrs"]["client_secret"]["tag"], "Env")
         env_example = (AUTHENTIK / "authentik.env.example").read_text(encoding="utf-8")
         self.assertIn("GENERATE_A_RANDOM_OIDC_CLIENT_SECRET", env_example)
