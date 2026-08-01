@@ -141,6 +141,8 @@ class AuthentikDeploymentTests(unittest.TestCase):
         self.assertTrue(email["attrs"]["activate_user_on_success"])
         login = entries_by_model(self.blueprint, "authentik_stages_user_login.userloginstage")[0]
         self.assertEqual(login["attrs"]["session_duration"], "days=30")
+        prompts = entries_by_model(self.blueprint, "authentik_stages_prompt.prompt")
+        self.assertTrue(all(set(prompt["identifiers"]) == {"name"} for prompt in prompts))
         bindings = entries_by_model(self.blueprint, "authentik_flows.flowstagebinding")
         self.assertEqual([binding["identifiers"]["order"] for binding in bindings], [10, 20, 30, 40, 50])
 

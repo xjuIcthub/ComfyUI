@@ -85,7 +85,7 @@ entries:
   - model: authentik_stages_prompt.prompt
     id: username-prompt
     identifiers:
-      pk: 1f9855eb-570f-467d-a9bc-2e5cf9bbed62
+      name: icthub-enrollment-field-username
     attrs:
       field_key: username
       label: 用户名
@@ -97,7 +97,7 @@ entries:
   - model: authentik_stages_prompt.prompt
     id: email-prompt
     identifiers:
-      pk: 9c5c6042-e58c-4e8c-9663-466881db4a20
+      name: icthub-enrollment-field-email
     attrs:
       field_key: email
       label: 已绑定邮箱
@@ -108,7 +108,7 @@ entries:
   - model: authentik_stages_prompt.prompt
     id: password-prompt
     identifiers:
-      pk: 0ed91ce7-d14e-414a-bd4a-f33fa8fb572b
+      name: icthub-enrollment-field-password
     attrs:
       field_key: password
       label: 密码
@@ -120,7 +120,7 @@ entries:
   - model: authentik_stages_prompt.prompt
     id: password-repeat-prompt
     identifiers:
-      pk: 0feb67df-7920-41ec-b6b4-779c68248dc8
+      name: icthub-enrollment-field-password-repeat
     attrs:
       field_key: password_repeat
       label: 确认密码
