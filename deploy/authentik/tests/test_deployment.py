@@ -179,6 +179,8 @@ class AuthentikDeploymentTests(unittest.TestCase):
         self.assertEqual(login["attrs"]["session_duration"], "days=30")
         prompts = entries_by_model(self.blueprint, "authentik_stages_prompt.prompt")
         self.assertTrue(all(set(prompt["identifiers"]) == {"name"} for prompt in prompts))
+        email_prompt = next(prompt for prompt in prompts if prompt["attrs"]["field_key"] == "email")
+        self.assertEqual(email_prompt["attrs"]["type"], "hidden")
         bindings = entries_by_model(self.blueprint, "authentik_flows.flowstagebinding")
         self.assertEqual([binding["identifiers"]["order"] for binding in bindings], [10, 20, 30, 40, 50])
         self.assertTrue(bindings[0]["attrs"]["evaluate_on_plan"])
@@ -192,7 +194,8 @@ class AuthentikDeploymentTests(unittest.TestCase):
             entry["attrs"]["expression"]
             for entry in entries_by_model(self.blueprint, "authentik_policies_expression.expressionpolicy")
         )
-        self.assertIn('fixed_data.get("email"', expressions)
+        self.assertIn('email = str(data.get("email"', expressions)
+        self.assertNotIn('request.context.get("invitation")', expressions)
         self.assertIn('Group.objects.get(name="comfy-users")', expressions)
         self.assertIn('filter(name="comfy-users")', expressions)
 

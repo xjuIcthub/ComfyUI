@@ -36,12 +36,9 @@ entries:
     attrs:
       expression: |
         data = request.context.get("prompt_data", {})
-        invitation = request.context.get("invitation")
-        fixed_data = invitation.get("fixed_data", {}) if isinstance(invitation, dict) else getattr(invitation, "fixed_data", {})
-        expected_email = str(fixed_data.get("email", "")).strip().casefold()
-        submitted_email = str(data.get("email", "")).strip().casefold()
-        if not request.context.get("invitation_in_effect", False) or not expected_email or submitted_email != expected_email:
-            ak_message("邀请码无效、已失效或与绑定邮箱不匹配。")
+        email = str(data.get("email", "")).strip().casefold()
+        if not email:
+            ak_message("邀请码未包含有效的绑定邮箱。")
             return False
         username = str(data.get("username", ""))
         if not 3 <= len(username) <= 32 or not username[0].isalnum() or not all(character.isalnum() or character in "._-" for character in username):
