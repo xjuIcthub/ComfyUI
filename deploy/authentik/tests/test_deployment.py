@@ -161,6 +161,7 @@ class AuthentikDeploymentTests(unittest.TestCase):
     def test_brand_media_paths_are_authentik_relative(self):
         brands = entries_by_model(self.blueprint, "authentik_brands.brand")
         for brand in brands:
+            self.assertFalse(brand["attrs"]["default"])
             self.assertEqual(brand["attrs"]["branding_logo"], "icthub/logo.svg")
             self.assertEqual(brand["attrs"]["branding_favicon"], "icthub/favicon.svg")
             self.assertEqual(
